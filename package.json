@@ -2,6 +2,10 @@
   "name": "react-music-visualizer",
   "version": "1.0.0",
   "description": "Basic visualizer that hooks into audio context api",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx webpack --config webpack.config.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/im-sticky/react-music-visualizer.git"
@@ -16,9 +20,24 @@
   "author": "Alex Craig",
   "license": "MIT",
   "homepage": "https://github.com/im-sticky/react-music-visualizer",
+  "peerDependencies": {
+    "react": ">=16.8",
+    "react-dom": ">=16.8"
+  },
   "devDependencies": {
+    "@babel/cli": "^7.12.1",
+    "@babel/core": "^7.12.3",
+    "@babel/preset-env": "^7.12.1",
+    "@babel/preset-react": "^7.12.5",
+    "babel-loader": "^8.1.0",
+    "react": "^16.8.0",
+    "react-dom": "^16.8.0",
+    "webpack": "^5.4.0",
+    "webpack-cli": "^4.2.0",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
     "lodash.debounce": "^4.0.8",
-    "prop-types": "^15.7.2",
-    "react": "^17.0.1"
+    "prop-types": "^15.7.2"
   }
 }
