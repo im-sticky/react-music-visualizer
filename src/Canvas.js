@@ -1,6 +1,6 @@
 import React, {useState, useEffect, forwardRef} from 'react';
 import PropTypes from 'prop-types';
-import {useWindowResize} from './useWindowResize';
+import {useWindowResize} from './utils/useWindowResize';
 
 export const Canvas = forwardRef(({height, maxWidth = 3840, className, ...props}, ref) => {
   const [canvasWidth, setCanvasWidth] = useState(height);

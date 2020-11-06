@@ -1,19 +1,21 @@
 {
-  "name": "react-audio-visualizer",
+  "name": "react-music-visualizer",
   "version": "1.0.0",
   "description": "Basic visualizer that hooks into audio context api",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/im-sticky/react-audio-visualizer.git"
+    "url": "git+https://github.com/im-sticky/react-music-visualizer.git"
   },
   "keywords": [
     "react",
+    "react-component",
     "audio",
+    "music",
     "visualizer"
   ],
   "author": "Alex Craig",
   "license": "MIT",
-  "homepage": "https://github.com/im-sticky/react-audio-visualizer",
+  "homepage": "https://github.com/im-sticky/react-music-visualizer",
   "devDependencies": {
     "lodash.debounce": "^4.0.8",
     "prop-types": "^15.7.2",
