@@ -4,7 +4,8 @@
   "description": "Basic visualizer that hooks into audio context api",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx webpack --config webpack.prod.js"
+    "build": "npx webpack --config webpack.prod.js",
+    "dev": "npx webpack serve --config webpack.dev.js"
   },
   "repository": {
     "type": "git",
