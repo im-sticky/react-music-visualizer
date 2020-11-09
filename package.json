@@ -1,10 +1,10 @@
 {
   "name": "react-music-visualizer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Basic visualizer that hooks into audio context api",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx webpack --config webpack.config.js"
+    "build": "npx webpack --config webpack.prod.js"
   },
   "repository": {
     "type": "git",
