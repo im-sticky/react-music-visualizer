@@ -1,13 +1,23 @@
 import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
+import {powerOfTwo} from './utils/powerOfTwo';
 import {Canvas} from './Canvas';
 
+const defaultOptions = {
+  canvasColor: '#000000',
+  lineColor: '#7200ab',
+  lineAmount: 16,
+  strokeWidth: 3,
+  strokeTightness: 5,
+  mirrored: true,
+};
 
-export const Visualizer = ({audioPreviewUrl, canvasHeight = 480}) => {
+export const Visualizer = ({audioPreviewUrl, canvasWidth, canvasHeight = 540, drawFunc, drawOptions = {}, fftSize = 128}) => {
   const [audioContext, setAudioContext] = useState();
   const [canvasContext, setCanvasContext] = useState();
   const [audioSource, setAudioSource] = useState();
   const [audioBuffer, setAudioBuffer] = useState();
+  const [mergedOptions, setMergedOptions] = useState(defaultOptions);
   const dataArray = useRef();
   const audioAnalyser = useRef();
   const canvasRef = useRef();
@@ -26,6 +36,10 @@ export const Visualizer = ({audioPreviewUrl, canvasHeight = 480}) => {
   }
 
   useEffect(() => {
+    setMergedOptions(Object.assign(mergedOptions, drawOptions));
+  }, [drawOptions]);
+
+  useEffect(() => {
     setAudioContext(new AudioContext());
   }, []);
 
@@ -36,11 +50,11 @@ export const Visualizer = ({audioPreviewUrl, canvasHeight = 480}) => {
   }, [canvasRef.current]);
 
   useEffect(() => {
-    if (audioContext && audioPreviewUrl) {
+    if (audioContext && audioPreviewUrl && powerOfTwo(fftSize)) {
       loadPreviewUrl(audioPreviewUrl);
       
       audioAnalyser.current = audioContext.createAnalyser();
-      audioAnalyser.current.fftSize = 128;
+      audioAnalyser.current.fftSize = fftSize;
 
       dataArray.current = new Uint8Array(audioAnalyser.current.frequencyBinCount);
     }
@@ -76,20 +90,22 @@ export const Visualizer = ({audioPreviewUrl, canvasHeight = 480}) => {
 
     audioAnalyser.current.getByteFrequencyData(dataArray.current);
 
-    // remove any 0ed out data nodes
-    let filteredData = dataArray.current.filter(x => x > 0);
-
-    canvasContext.fillStyle = '#000000';
-    canvasContext.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    canvasContext.lineWidth = 3;
-    canvasContext.strokeStyle = '#7200ab';
-    canvasContext.beginPath();
-
-    let sliceWidth = canvasRef.current.width / filteredData.length / 2;
-    let x = 0;
-
-    const drawFrequency = (i, drawHeight, drawBottom) => {
-      if (filteredData[i] > 0) {
+    if (drawFunc) {
+      drawFunc(dataArray.current, audioAnalyser.current, canvasContext, canvasRef.current);
+    } else {
+      // remove any 0ed out data nodes
+      let filteredData = dataArray.current.filter(x => x > 0);
+  
+      canvasContext.fillStyle = mergedOptions.canvasColor;
+      canvasContext.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      canvasContext.lineWidth = mergedOptions.strokeWidth;
+      canvasContext.strokeStyle = mergedOptions.lineColor;
+      canvasContext.beginPath();
+  
+      let sliceWidth = canvasRef.current.width / filteredData.length / (mergedOptions.mirrored ? 2 : 1);
+      let x = 0;
+  
+      const drawFrequency = (i, drawHeight, drawBottom) => {
         let frequencyPercent = filteredData[i] / 255;
         let y = frequencyPercent * drawHeight + drawBottom;
 
@@ -98,37 +114,51 @@ export const Visualizer = ({audioPreviewUrl, canvasHeight = 480}) => {
           canvasContext.lineTo(x, y);
 
         x += sliceWidth;
+      };
+  
+      const drawWholeFrequency = (heightMultiplier) => {
+        let drawHeight = canvasRef.current.height //* heightMultiplier;
+        let drawBottom = canvasRef.current.height * (1 - heightMultiplier) / mergedOptions.strokeTightness;
+  
+        for (let i = 0; i < filteredData.length; i++) {
+          drawFrequency(i, drawHeight, drawBottom);
+        }
+  
+        if (mergedOptions.mirrored) {
+          for (let i = filteredData.length; i > 0; i--) {
+            drawFrequency(i, drawHeight, drawBottom);
+          }
+        }
+  
+        x += sliceWidth;
+        canvasContext.lineTo(x, drawHeight + drawBottom);
+        x = 0;
+      };
+  
+      const interval = (1.05 - 0.25) / mergedOptions.lineAmount;
+  
+      for (let i = 1.05; i > 0.25; i -= interval) {
+        drawWholeFrequency(i);
       }
-    };
-
-    const drawWholeFrequency = (heightMultiplier) => {
-      let drawHeight = canvasRef.current.height //* heightMultiplier;
-      let drawBottom = canvasRef.current.height * (1 - heightMultiplier) / 4; // increase number to make tighter
-
-      for (let i = 0; i < filteredData.length; i++) {
-        drawFrequency(i, drawHeight, drawBottom);
-      }
-
-      for (let i = filteredData.length; i > 0; i--) {
-        drawFrequency(i, drawHeight, drawBottom);
-      }
-
-      x += sliceWidth;
-      canvasContext.lineTo(x, drawHeight + drawBottom);
-      x = 0;
-    };
-
-    for (let i = 1.05; i > 0.25; i -= 0.05) {
-      drawWholeFrequency(i);
+  
+      canvasContext.stroke();
     }
-
-    canvasContext.stroke();
   }
 
-  return <Canvas height={canvasHeight} ref={canvasRef} />
+  return <Canvas height={canvasHeight} maxWidth={canvasWidth} ref={canvasRef} />
 };
 
 Visualizer.propTypes = {
   audioPreviewUrl: PropTypes.string,
   canvasHeight: PropTypes.number,
+  canvasWidth: PropTypes.number,
+  drawFunc: PropTypes.func,
+  drawOptions: PropTypes.object,
+  fftSize: (props, propName, componentName) => {
+    if (props[propName]) {
+      return powerOfTwo(props[propName]) ? null : new Error(`Invalid prop '${propName}' in component '${componentName}' is not a power of 2`);
+    }
+
+    return null;
+  },
 };

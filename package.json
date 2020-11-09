@@ -1,6 +1,6 @@
 {
   "name": "react-music-visualizer",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Basic visualizer that hooks into audio context api",
   "main": "dist/index.js",
   "scripts": {
